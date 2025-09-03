@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Makima Discord Control Panel</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        color: #fff;
+        min-height: 100vh;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        color: #ff6b6b;
+        margin: 0;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .header p {
+        color: #ccc;
+        margin: 10px 0;
+        font-size: 1.1em;
+      }
+
+      .control-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .messages-section,
+      .response-section {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .section-title {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        color: #ff6b6b;
+        border-bottom: 2px solid #ff6b6b;
+        padding-bottom: 10px;
+      }
+
+      .message-item {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #4ecdc4;
+      }
+
+      .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .username {
+        font-weight: bold;
+        color: #4ecdc4;
+        font-size: 1.1em;
+      }
+
+      .timestamp {
+        color: #999;
+        font-size: 0.9em;
+      }
+
+      .message-content {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 1.1em;
+        line-height: 1.4;
+      }
+
+      .suggestions {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .suggestion-btn {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        border: none;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        text-align: left;
+      }
+
+      .suggestion-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+      }
+
+      .response-input {
+        width: 100%;
+        min-height: 120px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid #4ecdc4;
+        border-radius: 10px;
+        padding: 15px;
+        color: #fff;
+        font-size: 1.1em;
+        resize: vertical;
+        font-family: inherit;
+      }
+
+      .response-input:focus {
+        outline: none;
+        border-color: #ff6b6b;
+        box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+      }
+
+      .send-btn {
+        background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+        border: none;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 15px;
+        width: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+      }
+
+      .send-btn:disabled {
+        background: #666;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .status {
+        text-align: center;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-weight: bold;
+      }
+
+      .status.connected {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid #4caf50;
+      }
+
+      .status.disconnected {
+        background: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+        border: 1px solid #f44336;
+      }
+
+      .no-messages {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+        padding: 40px;
+      }
+
+      .suggestion-categories {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .category-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid #4ecdc4;
+        color: #4ecdc4;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+      }
+
+      .category-btn.active {
+        background: #4ecdc4;
+        color: #1a1a2e;
+        font-weight: bold;
+      }
+
+      .category-btn:hover {
+        background: rgba(78, 205, 196, 0.2);
+      }
+
+      .loading-suggestions {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+        padding: 20px;
+      }
+
+      .suggestion-error {
+        background: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 0.9em;
+      }
+
+      @media (max-width: 768px) {
+        .control-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .header h1 {
+          font-size: 2em;
+        }
+
+        .suggestion-categories {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🎭 Makima Control Panel</h1>
+      <p>Take control of Makima and respond to Discord users manually</p>
+      <div id="status" class="status disconnected">
+        ⚫ Connecting to Discord bot...
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="messages-section">
+        <h2 class="section-title">📨 Incoming Messages</h2>
+        <div id="messages-container">
+          <div class="no-messages">Waiting for Discord messages...</div>
+        </div>
+      </div>
+
+      <div class="response-section">
+        <h2 class="section-title">💬 Makima Response</h2>
+
+        <h3 style="color: #4ecdc4; margin-bottom: 10px">
+          AI-Powered Suggestions:
+        </h3>
+
+        <div class="suggestion-categories">
+          <button
+            class="category-btn active"
+            onclick="showCategory('makima')"
+            id="makima-btn"
+          >
+            🎭 Makima Style
+          </button>
+          <button
+            class="category-btn"
+            onclick="showCategory('gemini')"
+            id="gemini-btn"
+          >
+            🧠 Gemini AI
+          </button>
+          <button
+            class="category-btn"
+            onclick="showCategory('roast')"
+            id="roast-btn"
+          >
+            🔥 Harsh Mode
+          </button>
+        </div>
+
+        <div class="suggestions" id="makima-suggestions">
+          <div class="loading-suggestions">
+            Select a message to get AI suggestions...
+          </div>
+        </div>
+
+        <div class="suggestions" id="gemini-suggestions" style="display: none">
+          <div class="loading-suggestions">
+            Select a message to get Gemini suggestions...
+          </div>
+        </div>
+
+        <div class="suggestions" id="roast-suggestions" style="display: none">
+          <div class="loading-suggestions">
+            Select a message to get roast suggestions...
+          </div>
+        </div>
+
+        <h3 style="color: #4ecdc4; margin-bottom: 10px">Custom Response:</h3>
+        <textarea
+          id="response-input"
+          class="response-input"
+          placeholder="Type Makima's response here..."
+        >
+        </textarea>
+
+        <button id="send-btn" class="send-btn" onclick="sendResponse()">
+          📤 Send as Makima
+        </button>
+
+        <div
+          id="response-status"
+          style="margin-top: 15px; text-align: center"
+        ></div>
+      </div>
+    </div>
+
+    <div
+      class="makima-send-panel"
+      style="
+        margin: 30px auto;
+        max-width: 600px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 20px;
+        border-radius: 12px;
+      "
+    >
+      <h2 style="color: #ff6b6b">Send as Makima</h2>
+      <label for="makima-channel-select">Channel:</label>
+      <select
+        id="makima-channel-select"
+        style="width: 250px; margin-right: 10px"
+      >
+        <option value="">Loading channels...</option>
+      </select>
+      <br /><br />
+      <!-- User dropdown -->
+      <label for="makima-user-select">User:</label>
+      <select id="makima-user-select" style="width: 250px; margin-right: 10px">
+        <option value="">(Optional) Loading users...</option>
+      </select>
+      <br /><br />
+      <textarea
+        id="makima-message"
+        rows="3"
+        style="width: 90%"
+        placeholder="Type your message as Makima..."
+      ></textarea>
+      <br />
+      <button
+        onclick="sendAsMakima()"
+        style="
+          margin-top: 10px;
+          padding: 8px 18px;
+          background: #ff6b6b;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+        "
+      >
+        Send as Makima
+      </button>
+      <span id="makima-send-status" style="margin-left: 15px"></span>
+    </div>
+
+    <script>
+      let currentMessageId = null;
+      let messages = [];
+
+      function fillResponse(text) {
+        document.getElementById("response-input").value = text;
+      }
+
+      function addMessage(username, content, timestamp, messageId) {
+        const container = document.getElementById("messages-container");
+
+        // Remove "no messages" text
+        if (container.innerHTML.includes("Waiting for Discord messages")) {
+          container.innerHTML = "";
+        }
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message-item";
+        messageDiv.onclick = () => selectMessage(messageId);
+
+        messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="username">👤 ${username}</span>
+                    <span class="timestamp">${timestamp}</span>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+
+        container.insertBefore(messageDiv, container.firstChild);
+        currentMessageId = messageId;
+        currentMessageData = { content: content, username: username };
+
+        // Auto-scroll to top for new messages
+        container.scrollTop = 0;
+
+        // Load AI suggestions for this message
+        loadAISuggestions(content, username);
+      }
+
+      function selectMessage(messageId) {
+        currentMessageId = messageId;
+
+        // Find message data
+        const messageElement = event.currentTarget;
+        const username = messageElement
+          .querySelector(".username")
+          .textContent.replace("👤 ", "");
+        const content =
+          messageElement.querySelector(".message-content").textContent;
+        currentMessageData = { content: content, username: username };
+
+        // Highlight selected message
+        document.querySelectorAll(".message-item").forEach((item) => {
+          item.style.borderLeft = "4px solid #4ecdc4";
+        });
+        messageElement.style.borderLeft = "4px solid #ff6b6b";
+
+        // Load AI suggestions for selected message
+        loadAISuggestions(content, username);
+      }
+
+      let currentCategory = "makima";
+      let currentMessageData = null;
+
+      function showCategory(category) {
+        // Update button states
+        document
+          .querySelectorAll(".category-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        document.getElementById(category + "-btn").classList.add("active");
+
+        // Show/hide suggestion containers
+        document
+          .querySelectorAll('[id$="-suggestions"]')
+          .forEach((container) => {
+            container.style.display = "none";
+          });
+        document.getElementById(category + "-suggestions").style.display =
+          "block";
+
+        currentCategory = category;
+
+        // Reload suggestions for current message
+        if (currentMessageData) {
+          loadAISuggestions(
+            currentMessageData.content,
+            currentMessageData.username
+          );
+        }
+      }
+
+      function loadAISuggestions(messageContent, username) {
+        // Show loading for current category
+        const container = document.getElementById(
+          currentCategory + "-suggestions"
+        );
+        container.innerHTML =
+          '<div class="loading-suggestions">🤖 Loading AI suggestions...</div>';
+
+        // Fetch AI suggestions
+        fetch(
+          `/get_suggestions?message=${encodeURIComponent(
+            messageContent
+          )}&username=${encodeURIComponent(username)}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            updateSuggestionsDisplay(data);
+          })
+          .catch((error) => {
+            console.error("Error loading suggestions:", error);
+            container.innerHTML =
+              '<div class="suggestion-error">❌ Failed to load AI suggestions</div>';
+          });
+      }
+
+      function updateSuggestionsDisplay(suggestions) {
+        // Update all categories with their suggestions
+        updateCategorySuggestions("makima", suggestions.makima);
+        updateCategorySuggestions("gemini", suggestions.gemini);
+        updateCategorySuggestions("roast", suggestions.roast);
+      }
+
+      function updateCategorySuggestions(category, suggestions) {
+        const container = document.getElementById(category + "-suggestions");
+        container.innerHTML = "";
+
+        if (suggestions && suggestions.length > 0) {
+          suggestions.forEach((suggestion) => {
+            const btn = document.createElement("button");
+            btn.className = "suggestion-btn";
+            btn.onclick = () => fillResponse(suggestion);
+            btn.textContent = suggestion;
+            container.appendChild(btn);
+          });
+        } else {
+          container.innerHTML =
+            '<div class="suggestion-error">No suggestions available</div>';
+        }
+      }
+
+      function sendResponse() {
+        const responseText = document
+          .getElementById("response-input")
+          .value.trim();
+
+        if (!responseText) {
+          alert("Please enter a response!");
+          return;
+        }
+
+        if (!currentMessageId) {
+          alert("No message selected to respond to!");
+          return;
+        }
+
+        const sendBtn = document.getElementById("send-btn");
+        const statusDiv = document.getElementById("response-status");
+
+        sendBtn.disabled = true;
+        sendBtn.textContent = "📤 Sending...";
+        statusDiv.innerHTML =
+          '<span style="color: #ffa726;">⏳ Sending response...</span>';
+
+        // Send to bot backend
+        fetch("/send_response", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messageId: currentMessageId,
+            response: responseText,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              statusDiv.innerHTML =
+                '<span style="color: #4CAF50;">✅ Response sent successfully!</span>';
+              document.getElementById("response-input").value = "";
+              setTimeout(() => {
+                statusDiv.innerHTML = "";
+              }, 3000);
+            } else {
+              statusDiv.innerHTML =
+                '<span style="color: #F44336;">❌ Failed to send response</span>';
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            statusDiv.innerHTML =
+              '<span style="color: #F44336;">❌ Connection error</span>';
+          })
+          .finally(() => {
+            sendBtn.disabled = false;
+            sendBtn.textContent = "📤 Send as Makima";
+          });
+      }
+
+      let makimaChannelsCache = null;
+      let makimaUsersCache = null;
+
+      function loadMakimaChannels() {
+        if (makimaChannelsCache) {
+          populateMakimaChannelDropdown(makimaChannelsCache);
+          return;
+        }
+        fetch("/list_channels")
+          .then((res) => res.json())
+          .then((data) => {
+            makimaChannelsCache = data.channels || [];
+            populateMakimaChannelDropdown(makimaChannelsCache);
+          });
+      }
+
+      function populateMakimaChannelDropdown(channels) {
+        const select = document.getElementById("makima-channel-select");
+        select.innerHTML = "";
+        if (channels.length) {
+          channels.forEach((ch) => {
+            const opt = document.createElement("option");
+            opt.value = ch.id;
+            opt.textContent = ch.name;
+            select.appendChild(opt);
+          });
+        } else {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "No channels found";
+          select.appendChild(opt);
+        }
+      }
+
+      function loadMakimaUsers() {
+        if (makimaUsersCache) {
+          populateMakimaUserDropdown(makimaUsersCache);
+          return;
+        }
+        fetch("/list_users")
+          .then((res) => res.json())
+          .then((data) => {
+            makimaUsersCache = data.users || [];
+            populateMakimaUserDropdown(makimaUsersCache);
+          });
+      }
+
+      function populateMakimaUserDropdown(users) {
+        const select = document.getElementById("makima-user-select");
+        select.innerHTML = "";
+        const opt0 = document.createElement("option");
+        opt0.value = "";
+        opt0.textContent = "(Optional) Select user for DM";
+        select.appendChild(opt0);
+        if (users.length) {
+          users.forEach((u) => {
+            const opt = document.createElement("option");
+            opt.value = u.id;
+            opt.textContent = u.name;
+            select.appendChild(opt);
+          });
+        } else {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "No users found";
+          select.appendChild(opt);
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        loadMakimaChannels();
+        loadMakimaUsers();
+      });
+
+      function sendAsMakima() {
+        const channelId = document.getElementById(
+          "makima-channel-select"
+        ).value;
+        const userId = document.getElementById("makima-user-select").value;
+        const response = document.getElementById("makima-message").value.trim();
+        const status = document.getElementById("makima-send-status");
+        if (!channelId || !response) {
+          status.textContent = "Channel and message required!";
+          status.style.color = "#ff6b6b";
+          return;
+        }
+        status.textContent = "Sending...";
+        status.style.color = "#ccc";
+        fetch("/send_as_makima", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channelId, response, userId: userId || null }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              status.textContent = "Sent!";
+              status.style.color = "#4caf50";
+              document.getElementById("makima-message").value = "";
+            } else {
+              status.textContent = "Error: " + (data.error || "Unknown error");
+              status.style.color = "#ff6b6b";
+            }
+          })
+          .catch(() => {
+            status.textContent = "Network error!";
+            status.style.color = "#ff6b6b";
+          });
+      }
+
+      // Poll for new messages
+      function pollMessages() {
+        fetch("/get_messages")
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("status").className = "status connected";
+            document.getElementById("status").innerHTML =
+              "🟢 Connected to Discord bot";
+
+            data.messages.forEach((msg) => {
+              // Check if message is already displayed
+              if (!messages.includes(msg.id)) {
+                addMessage(msg.username, msg.content, msg.timestamp, msg.id);
+                messages.push(msg.id);
+              }
+            });
+          })
+          .catch((error) => {
+            console.error("Connection error:", error);
+            document.getElementById("status").className = "status disconnected";
+            document.getElementById("status").innerHTML =
+              "⚫ Connection lost - Retrying...";
+          });
+      }
+
+      // Start polling every 2 seconds
+      setInterval(pollMessages, 2000);
+      pollMessages(); // Initial call
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", function (e) {
+        if (e.ctrlKey && e.key === "Enter") {
+          sendResponse();
+        }
+      });
+
+      let typingInterval = null;
+
+      const messageBox = document.getElementById("makima-message");
+      const channelSelect = document.getElementById("makima-channel-select");
+
+      function sendMakimaTyping(isTyping) {
+        const channelId = channelSelect.value;
+        if (!channelId) return;
+        fetch("/makima_typing", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channelId, typing: isTyping }),
+        });
+      }
+
+      messageBox.addEventListener("focus", () => {
+        sendMakimaTyping(true);
+        typingInterval = setInterval(() => sendMakimaTyping(true), 7000); // every 7s
+      });
+
+      messageBox.addEventListener("blur", () => {
+        clearInterval(typingInterval);
+        typingInterval = null;
+        // No need to send false; Discord will auto-stop after 10s
+      });
+
+      function fetchSuggestions(message, username) {
+        fetch(
+          `/get_suggestions?message=${encodeURIComponent(
+            message
+          )}&username=${encodeURIComponent(username)}`
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            // Example: show suggestions in the UI
+            document.getElementById("makima-suggestions").innerText = (
+              data.makima || []
+            ).join("\n");
+            document.getElementById("gemini-suggestions").innerText = (
+              data.gemini || []
+            ).join("\n");
+            document.getElementById("roast-suggestions").innerText = (
+              data.roast || []
+            ).join("\n");
+          });
+      }
+    </script>
+  </body>
+</html>

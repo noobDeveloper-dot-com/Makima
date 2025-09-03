@@ -188,7 +188,7 @@
 
       .suggestion-categories {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
         gap: 10px;
         margin-bottom: 15px;
       }
@@ -230,6 +230,19 @@
         font-size: 0.9em;
       }
 
+      /* Activity indicator */
+      .activity-status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        z-index: 1000;
+      }
+
       @media (max-width: 768px) {
         .control-panel {
           grid-template-columns: 1fr;
@@ -246,9 +259,16 @@
     </style>
   </head>
   <body>
+    <div class="activity-status" id="activity-status">
+      🔴 Inactive (10s timeout)
+    </div>
+
     <div class="header">
       <h1>🎭 Makima Control Panel</h1>
       <p>Take control of Makima and respond to Discord users manually</p>
+      <p style="color: #ff6b6b; font-size: 0.9em;">
+        🔥 NEW: Auto-detects harsh language and responds with roasts!
+      </p>
       <div id="status" class="status disconnected">
         ⚫ Connecting to Discord bot...
       </div>
@@ -286,6 +306,13 @@
           </button>
           <button
             class="category-btn"
+            onclick="showCategory('deepseek')"
+            id="deepseek-btn"
+          >
+            🧬 DeepSeek AI
+          </button>
+          <button
+            class="category-btn"
             onclick="showCategory('roast')"
             id="roast-btn"
           >
@@ -302,6 +329,12 @@
         <div class="suggestions" id="gemini-suggestions" style="display: none">
           <div class="loading-suggestions">
             Select a message to get Gemini suggestions...
+          </div>
+        </div>
+
+        <div class="suggestions" id="deepseek-suggestions" style="display: none">
+          <div class="loading-suggestions">
+            Select a message to get DeepSeek suggestions...
           </div>
         </div>
 
@@ -327,6 +360,123 @@
           id="response-status"
           style="margin-top: 15px; text-align: center"
         ></div>
+      </div>
+    </div>
+
+    <!-- Moderation Panel -->
+    <div class="moderation-panel" style="
+      margin: 30px auto;
+      max-width: 1400px;
+      background: rgba(255, 107, 107, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid #ff6b6b;
+    ">
+      <h2 style="color: #ff6b6b; text-align: center; margin-bottom: 20px;">
+        ⚖️ Moderation Control Panel
+      </h2>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 10px;">
+          <h3 style="color: #4ecdc4; margin-bottom: 15px;">🔨 Quick Actions</h3>
+          
+          <div style="margin-bottom: 15px;">
+            <label style="color: #ccc; display: block; margin-bottom: 5px;">Select User:</label>
+            <select id="mod-user-select" style="
+              width: 100%;
+              padding: 10px;
+              background: rgba(0, 0, 0, 0.5);
+              border: 2px solid #4ecdc4;
+              border-radius: 8px;
+              color: #fff;
+              font-size: 1em;
+            ">
+              <option value="">Loading users...</option>
+            </select>
+          </div>
+          
+          <div style="margin-bottom: 15px;">
+            <label style="color: #ccc; display: block; margin-bottom: 5px;">Reason:</label>
+            <input type="text" id="mod-reason" placeholder="Violation of server rules" style="
+              width: 100%;
+              padding: 10px;
+              background: rgba(0, 0, 0, 0.5);
+              border: 2px solid #4ecdc4;
+              border-radius: 8px;
+              color: #fff;
+              font-size: 1em;
+            ">
+          </div>
+          
+          <div style="margin-bottom: 15px;" id="timeout-duration-div">
+            <label style="color: #ccc; display: block; margin-bottom: 5px;">Timeout Duration (seconds):</label>
+            <input type="number" id="timeout-duration" value="60" min="1" max="86400" style="
+              width: 100%;
+              padding: 10px;
+              background: rgba(0, 0, 0, 0.5);
+              border: 2px solid #4ecdc4;
+              border-radius: 8px;
+              color: #fff;
+              font-size: 1em;
+            ">
+          </div>
+        </div>
+        
+        <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 10px;">
+          <h3 style="color: #ff6b6b; margin-bottom: 15px;">🚨 Moderation Actions</h3>
+          
+          <button onclick="moderateUser('timeout')" style="
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff9800, #ff5722);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            ⏰ Timeout User
+          </button>
+          
+          <button onclick="moderateUser('kick')" style="
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #e74c3c);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            👢 Kick User
+          </button>
+          
+          <button onclick="moderateUser('ban')" style="
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #8e24aa, #6a1b9a);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            🔨 Ban User
+          </button>
+          
+          <div id="moderation-status" style="
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+          "></div>
+        </div>
       </div>
     </div>
 
@@ -382,6 +532,44 @@
     <script>
       let currentMessageId = null;
       let messages = [];
+      let userActive = false;
+
+      // Track user activity
+      function updateUserActivity(active) {
+        userActive = active;
+        const status = document.getElementById("activity-status");
+        
+        if (active) {
+          status.textContent = "🟢 Active (∞ timeout)";
+          status.style.background = "rgba(76, 175, 80, 0.8)";
+        } else {
+          status.textContent = "🔴 Inactive (10s timeout)";
+          status.style.background = "rgba(244, 67, 54, 0.8)";
+        }
+        
+        // Send activity status to server
+        fetch('/update_activity', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ active: active })
+        }).catch(console.error);
+      }
+
+      // Add event listeners for textboxes to track cursor activity
+      function setupActivityTracking() {
+        const textInputs = [
+          document.getElementById("response-input"),
+          document.getElementById("makima-message")
+        ];
+        
+        textInputs.forEach(input => {
+          input.addEventListener('focus', () => updateUserActivity(true));
+          input.addEventListener('blur', () => updateUserActivity(false));
+          input.addEventListener('input', () => updateUserActivity(true));
+        });
+      }
 
       function fillResponse(text) {
         document.getElementById("response-input").value = text;
@@ -499,6 +687,7 @@
         // Update all categories with their suggestions
         updateCategorySuggestions("makima", suggestions.makima);
         updateCategorySuggestions("gemini", suggestions.gemini);
+        updateCategorySuggestions("deepseek", suggestions.deepseek);
         updateCategorySuggestions("roast", suggestions.roast);
       }
 
@@ -648,11 +837,6 @@
         }
       }
 
-      window.addEventListener("DOMContentLoaded", () => {
-        loadMakimaChannels();
-        loadMakimaUsers();
-      });
-
       function sendAsMakima() {
         const channelId = document.getElementById(
           "makima-channel-select"
@@ -740,37 +924,115 @@
         });
       }
 
-      messageBox.addEventListener("focus", () => {
-        sendMakimaTyping(true);
-        typingInterval = setInterval(() => sendMakimaTyping(true), 7000); // every 7s
-      });
-
-      messageBox.addEventListener("blur", () => {
-        clearInterval(typingInterval);
-        typingInterval = null;
-        // No need to send false; Discord will auto-stop after 10s
-      });
-
-      function fetchSuggestions(message, username) {
-        fetch(
-          `/get_suggestions?message=${encodeURIComponent(
-            message
-          )}&username=${encodeURIComponent(username)}`
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            // Example: show suggestions in the UI
-            document.getElementById("makima-suggestions").innerText = (
-              data.makima || []
-            ).join("\n");
-            document.getElementById("gemini-suggestions").innerText = (
-              data.gemini || []
-            ).join("\n");
-            document.getElementById("roast-suggestions").innerText = (
-              data.roast || []
-            ).join("\n");
+      // Moderation Functions
+      function loadModerationUsers() {
+        fetch("/get_guild_members")
+          .then(response => response.json())
+          .then(data => {
+            const select = document.getElementById("mod-user-select");
+            select.innerHTML = '<option value="">Select a user...</option>';
+            
+            if (data.members && data.members.length > 0) {
+              data.members.forEach(member => {
+                const option = document.createElement("option");
+                option.value = member.id;
+                option.textContent = `${member.name} (${member.guild})`;
+                select.appendChild(option);
+              });
+            } else {
+              const option = document.createElement("option");
+              option.value = "";
+              option.textContent = "No users found";
+              select.appendChild(option);
+            }
+          })
+          .catch(error => {
+            console.error("Error loading moderation users:", error);
+            const select = document.getElementById("mod-user-select");
+            select.innerHTML = '<option value="">Error loading users</option>';
           });
       }
+
+      function moderateUser(action) {
+        const userId = document.getElementById("mod-user-select").value;
+        const reason = document.getElementById("mod-reason").value || "Moderated by Makima";
+        const duration = parseInt(document.getElementById("timeout-duration").value) || 60;
+        const statusDiv = document.getElementById("moderation-status");
+
+        if (!userId) {
+          showModerationStatus("Please select a user first", "error");
+          return;
+        }
+
+        // Confirmation dialog
+        const actionText = action === "timeout" ? `timeout for ${duration} seconds` : action;
+        if (!confirm(`Are you sure you want to ${actionText} this user?\n\nReason: ${reason}`)) {
+          return;
+        }
+
+        showModerationStatus(`${action}ing user...`, "info");
+
+        fetch("/moderate_user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: userId,
+            action: action,
+            duration: duration,
+            reason: reason
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const actionPast = action === "timeout" ? "timed out" : action === "kick" ? "kicked" : "banned";
+            showModerationStatus(`✅ User ${actionPast} successfully!`, "success");
+            // Clear form
+            document.getElementById("mod-user-select").selectedIndex = 0;
+            document.getElementById("mod-reason").value = "";
+          } else {
+            showModerationStatus(`❌ Failed to ${action} user: ${data.error || "Unknown error"}`, "error");
+          }
+        })
+        .catch(error => {
+          console.error("Moderation error:", error);
+          showModerationStatus(`❌ Network error during ${action}`, "error");
+        });
+      }
+
+      function showModerationStatus(message, type) {
+        const statusDiv = document.getElementById("moderation-status");
+        statusDiv.textContent = message;
+        statusDiv.style.display = "block";
+        
+        // Set colors based on type
+        if (type === "success") {
+          statusDiv.style.background = "rgba(76, 175, 80, 0.2)";
+          statusDiv.style.color = "#4caf50";
+          statusDiv.style.border = "1px solid #4caf50";
+        } else if (type === "error") {
+          statusDiv.style.background = "rgba(244, 67, 54, 0.2)";
+          statusDiv.style.color = "#f44336";
+          statusDiv.style.border = "1px solid #f44336";
+        } else {
+          statusDiv.style.background = "rgba(255, 193, 7, 0.2)";
+          statusDiv.style.color = "#ffc107";
+          statusDiv.style.border = "1px solid #ffc107";
+        }
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          statusDiv.style.display = "none";
+        }, 5000);
+      }
+
+      // Load moderation users when page loads
+      window.addEventListener("DOMContentLoaded", () => {
+        setupActivityTracking();
+        loadMakimaChannels();
+        loadMakimaUsers();
+        loadModerationUsers(); // Load users for moderation
+      });
     </script>
   </body>
 </html>

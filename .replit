@@ -2,9 +2,6 @@ modules = ["python-3.11"]
 [agent]
 expertMode = true
 
-[nix]
-channel = "stable-25_05"
-
 [workflows]
 runButton = "Project"
 
@@ -28,6 +25,13 @@ args = "python discord_spicychat_bot.py"
 [workflows.workflow.metadata]
 outputType = "console"
 
+[nix]
+channel = "stable-25_05"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[deployment]
+deploymentTarget = "vm"
+run = ["python", "discord_spicychat_bot.py"]
